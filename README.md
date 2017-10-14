@@ -1,2 +1,2 @@
-# PracticalMalwareAnalysis
-Solutions to Practical Malware Analysis book
+# PracticalReverseEngineering
+Solutions to Practical Reverse Engineering book
