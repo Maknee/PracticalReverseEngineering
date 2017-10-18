@@ -37,7 +37,7 @@ Counting something down with each call to this function?
 sub     eax, 24h
 mov     [ecx+60h], eax
 
-Subtract 24 from 0x60 member of ecx pointer
+Subtract 0x24 from 0x60 member of ecx pointer
 
 mov     [eax+14h], edx
 
@@ -57,16 +57,45 @@ Call a function in a table that takes two arguments (the arguments to this funct
 ```
 
 ```
+struct unknown1_60
+{
+  DWORD unk0; 
+  ...
+  struct unknown2* unk_14;
+  ...
+}
+(size = 0x24)
+
 typedef struct unknown1
 {
-  
+  ...
+  BYTE unk23;
+  ...
+  struct unk1_60* unk60;
+  ...
 }unknown1;
+
+typedef (*unk_func)(struct unknown1* unk1, struct unknown1* unk2)
+
+typedef struct unknown2
+{
+  ...
+  unk_func unk8
+  ...
+}unknown2;
 ```
 
 ```C
 void __fastcall sub_13842(struct unknown1* unk1, struct unknown1* unk2)
 {
-  
+  struct unknown1_60* = unk1->unk60;
+  DWORD unk2_8 = unknown2->unk8;
+  unk1->unk23 -= 23;
+  unknown1_60--;
+  unk1->unk60 = unkown1_60;
+  unknown1_60->unk_14 = unk2;
+  unknown1_60->unk0 &= 0xff;
+  (unk_func)((PCHAR)(unkown2->unk8 + unknown1_60->unk0) + 0x38)(unk1, unk2);
 }
 ```
 
