@@ -1,0 +1,72 @@
+Sample H. The function sub_13846 references several structures whose types are not entirely clear. Your task is to first recover the function prototype and then try to reconstruct the structure fields. After reading Chapter 3, return to this exercise to see if your understanding has changed. (Note: This sample is targeting Windows XP x86.)
+
+```
+sub_13842 proc near
+mov     eax, [ecx+60h]
+push    esi
+mov     esi, [edx+8]
+dec     byte ptr [ecx+23h]
+sub     eax, 24h
+mov     [ecx+60h], eax
+mov     [eax+14h], edx
+movzx   eax, byte ptr [eax]
+push    ecx
+push    edx
+call    dword ptr [esi+eax*4+38h]
+pop     esi
+retn
+sub_13842 endp
+```
+
+This is a __fastcall function as seen by a lot of ecx and edx usage.
+
+```
+mov     eax, [ecx+60h]
+
+Get offset into 0x60 member of ecx pointer
+
+push    esi
+mov     esi, [edx+8]
+
+Make a local variable that contains the 0x8 member of edx pointer
+
+dec     byte ptr [ecx+23h]
+
+Counting something down with each call to this function?
+
+sub     eax, 24h
+mov     [ecx+60h], eax
+
+Subtract 24 from 0x60 member of ecx pointer
+
+mov     [eax+14h], edx
+
+Set the second pointer to be a member of the ecx pointer
+
+movzx   eax, byte ptr [eax]
+
+Get the first member of eax and expand it (movzx)
+
+push    ecx
+push    edx
+call    dword ptr [esi+eax*4+38h]
+
+Call a function in a table that takes two arguments (the arguments to this function)
+
+
+```
+
+```
+typedef struct unknown1
+{
+  
+}unknown1;
+```
+
+```C
+void __fastcall sub_13842(struct unknown1* unk1, struct unknown1* unk2)
+{
+  
+}
+```
+
