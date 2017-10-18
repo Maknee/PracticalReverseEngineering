@@ -152,9 +152,9 @@ typedef struct _IMAGE_SECTION_HEADER {
 .text:00010BC8                 lea     edi, [eax+esi+18h]
 .text:00010BCC                 jbe     short loc_10BEB
 
-[esi + 0x6] = FileHeader (0x4) + NumberOfSections (0x2)
+(_IMAGE_SECTION_HEADER*)edi = eax(SizeOfOptionalHeader) + esi(_IMAGE_NT_HEADERS*) + 0x18(Distance between _IMAGE_NT_HEADERS and _IMAGE_OPTIONAL_HEADER)
 
-(_IMAGE_SECTION_HEADER*)edi = eax(SizeOfOptionalHeader) + esi(_IMAGE_NT_HEADERS*) + (0x18)
+[esi + 0x6] = FileHeader (0x4) + NumberOfSections (0x2)
 if(NumberOfSections == 0)
 {
   goto loc_10BEB
@@ -169,9 +169,9 @@ if(NumberOfSections == 0)
 .text:00010BD2                 push    edi             ; _DWORD
 .text:00010BD3                 call    ds:dword_169A4
 
-Get argument offsetted at ebp + arg_4.
+Get argument offsetted at ebp + 8. (two arguments)
 
-ret = dword_169A4((_IMAGE_SECTION_HEADER*) edi, *(ebp + arg_4))
+ret = dword_169A4((_IMAGE_SECTION_HEADER*) edi, arg2)
 
 .text:00010BD9                 test    eax, eax
 .text:00010BDB                 pop     ecx
@@ -192,18 +192,20 @@ eax = NumberOfSections
 
 (_IMAGE_SECTION_HEADER*)edi += 1
 
-We are at section header #2.
+We are at section header #1 ... Number of sections
 
 .text:00010BE6                 inc     ebx
 
-ebx = 1
+ebx += 1
 
 .text:00010BE7                 cmp     ebx, eax
 .text:00010BE9                 jb      short loc_10BCE
 
-if(eax(NumberOfSections) < ebx(1))
- goto loc_10BCE
+Sums up to a for loop ...
 
+for(ebx = 0; ebx < eax(NumberOfSections); ebx++)
+  dword_169A4((_IMAGE_SECTION_HEADER*) edi, *(ebp + arg_4))
+  
 .text:00010BEB
 .text:00010BEB loc_10BEB:                              ; CODE XREF: sub_10BB2+1Aj
 .text:00010BEB                 xor     eax, eax
@@ -214,6 +216,30 @@ if(eax(NumberOfSections) < ebx(1))
 .text:00010BEF                 pop     ebx
 .text:00010BF0                 retn    8
 
+```
+
+```C
+
+#define DIST_IMAGE_NT_HEADER 0x18 //(Distance between _IMAGE_NT_HEADERS and _IMAGE_OPTIONAL_HEADER)
+
+int SearchForSomethingInSectionsOfPeHeader(_IMAGE_DOS_HEADER* dos_header, int some_value)
+{
+  _IMAGE_NT_HEADERS* nt_header = (_IMAGE_NT_HEADERS*)(dos_header + dos_header->e_lfanew);
+  WORD size_of_optional_header = nt_header.FileHeader.SizeOfOptionalHeader;
+  WORD number_of_sections = nt_header.FileHeader.NumberOfSections;
+  _IMAGE_OPTIONAL_HEADER* optional_header = nt_header + DIST_IMAGE_NT_HEADER;
+  _IMAGE_SECTION_HEADER* section_header = optional_header + size_of_optional_header;
+  
+  for(int i = 0; i < number_of_sections; i++)
+  {
+    if(!*dword_169A4(section_header, some_value))
+    {
+      return 0;
+    }
+  }
+  return 0;
+}
 
 ```
+
 
