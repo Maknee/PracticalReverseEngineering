@@ -102,7 +102,7 @@ void __fastcall sub_13842(struct unknown1* unk1, struct unknown2* unk2)
   unk1->unk60 = unkown1_60;
   unknown1_60->unk_14 = unk2;
   unknown1_60->unk0 &= 0xff;
-  unkown2->unk8->unk38[unknown1_60->unk0](unk2, unk1);
+  unknown2->unk8->unk38[unknown1_60->unk0](unk2, unk1);
 }
 ```
 
