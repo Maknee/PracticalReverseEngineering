@@ -1,0 +1,6 @@
+10. If the current privilege level is encoded in CS, which is modifiable by user-mode code, why can't user-mode code modify CS to change CPL?
+
+CS can't be modified manually. It can only be modified using CALL/JMP/IRET instructions. 
+One should be careful of changing CS register in user mode as there are only (5?) segments on windows and will cause undefined behavior(?) if changed.
+
+
