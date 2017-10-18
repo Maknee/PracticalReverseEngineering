@@ -158,6 +158,15 @@ typedef struct _IMAGE_SECTION_HEADER {
 if(NumberOfSections == 0)
 {
   goto loc_10BEB
+.text:00010BF3 ; ---------------------------------------------------------------------------
+.text:00010BF3
+.text:00010BF3 loc_10BF3:                              ; CODE XREF: sub_10BB2+2Bj
+.text:00010BF3                 mov     eax, edi
+.text:00010BF5                 jmp     short loc_10BED
+.text:00010BF5 sub_10BB2       endp
+
+  return edi(_IMAGE_SECTION_HEADER*)
+
 }
 
 ```
@@ -222,23 +231,23 @@ for(ebx = 0; ebx < eax(NumberOfSections); ebx++)
 
 #define DIST_IMAGE_NT_HEADER 0x18 //(Distance between _IMAGE_NT_HEADERS and _IMAGE_OPTIONAL_HEADER)
 
-int SearchForSomethingInSectionsOfPeHeader(_IMAGE_DOS_HEADER* dos_header, int some_value)
+_IMAGE_SECTION_HEADER* SearchForSomethingInSectionsOfPeHeader(_IMAGE_DOS_HEADER* dos_header, int some_value)
 {
   _IMAGE_NT_HEADERS* nt_header = (_IMAGE_NT_HEADERS*)(dos_header + dos_header->e_lfanew);
   WORD size_of_optional_header = nt_header.FileHeader.SizeOfOptionalHeader;
   WORD number_of_sections = nt_header.FileHeader.NumberOfSections;
-  _IMAGE_OPTIONAL_HEADER* optional_header = nt_header + DIST_IMAGE_NT_HEADER;
-  _IMAGE_SECTION_HEADER* section_header = optional_header + size_of_optional_header;
+  _IMAGE_OPTIONAL_HEADER* optional_header = (_IMAGE_OPTIONAL_HEADER*)((PCHAR)nt_header + DIST_IMAGE_NT_HEADER);
+  _IMAGE_SECTION_HEADER* section_header = (_IMAGE_SECTION_HEADER*)((PCHAR)optional_header + size_of_optional_header);
   
   for(int i = 0; i < number_of_sections; i++)
   {
     if(!*dword_169A4(section_header, some_value))
     {
-      return ???;
+      return section_header;
     }
     section_header += sizeof(_IMAGE_SECTION_HEADER);
   }
-  return 0;
+  return NULL;
 }
 
 ```
