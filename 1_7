@@ -48,7 +48,12 @@
 .text:00010BF7                 db 0CCh ; ¦ OFF32 SEGDEF [0,575653CC]
 
 (PE Reference)
-https://en.wikibooks.org/wiki/X86_Disassembly/Windows_Executable_Files
+http://www.openrce.org/reference_library/files/reference/PE%20Format.pdf
+
+struct _IMAGE_DOS_HEADER {
+  ...
+  0x3c DWORD e_lfanew;
+};
 
 ```
 .text:00010BB2                 mov     eax, [esp+4]
@@ -59,100 +64,146 @@ Get start to pe file (DOS_header)
 .text:00010BB7                 push    esi
 .text:00010BB8                 mov     esi, [eax+3Ch]
 
- struct DOS_Header 
- {
-// short is 2 bytes, long is 4 bytes
-     char signature[2] = "MZ";
-     short lastsize;
-     short nblocks;
-     short nreloc;
-     short hdrsize;
-     short minalloc;
-     short maxalloc;
-     void *ss; // 2 byte value
-     void *sp; // 2 byte value
-     short checksum;
-     void *ip; // 2 byte value
-     void *cs; // 2 byte value
-     short relocpos;
-     short noverlay;
-     short reserved1[4];
-     short oem_id;
-     short oem_info;
-     short reserved2[10];
-     long  e_lfanew; // Offset to the 'PE\0\0' signature relative to the beginning of the file
- }
- 
 esi = dos_header->e_lfanew
 
 .text:00010BBB                 add     esi, eax
 
-(PEOptHeader*) esi = dos_header + dos_header->e_lfanew
+(_IMAGE_NT_HEADERS*) esi = dos_header + dos_header->e_lfanew
 
+```
+
+struct _IMAGE_NT_HEADERS {
+  0x00 DWORD Signature;
+  0x04 _IMAGE_FILE_HEADER FileHeader;
+    struct _IMAGE_FILE_HEADER {
+      0x00 WORD Machine;
+      0x02 WORD NumberOfSections;
+      0x04 DWORD TimeDateStamp;
+      0x08 DWORD PointerToSymbolTable;
+      0x0c DWORD NumberOfSymbols;
+      0x10 WORD SizeOfOptionalHeader;
+      0x12 WORD Characteristics;
+    };
+  0x18 _IMAGE_OPTIONAL_HEADER OptionalHeader;
+    struct _IMAGE_OPTIONAL_HEADER {
+      0x00 WORD Magic;
+      0x02 BYTE MajorLinkerVersion;
+      0x03 BYTE MinorLinkerVersion;
+      0x04 DWORD SizeOfCode;
+      0x08 DWORD SizeOfInitializedData;
+      0x0c DWORD SizeOfUninitializedData;
+      0x10 DWORD AddressOfEntryPoint;
+      0x14 DWORD BaseOfCode;
+      0x18 DWORD BaseOfData;
+      0x1c DWORD ImageBase;
+      0x20 DWORD SectionAlignment;
+      0x24 DWORD FileAlignment;
+      0x28 WORD MajorOperatingSystemVersion;
+      0x2a WORD MinorOperatingSystemVersion;
+      0x2c WORD MajorImageVersion;
+      0x2e WORD MinorImageVersion;
+      0x30 WORD MajorSubsystemVersion;
+      0x32 WORD MinorSubsystemVersion;
+      0x34 DWORD Win32VersionValue;
+      0x38 DWORD SizeOfImage;
+      0x3c DWORD SizeOfHeaders;
+      0x40 DWORD CheckSum;
+      0x44 WORD Subsystem;
+      0x46 WORD DllCharacteristics;
+      0x48 DWORD SizeOfStackReserve;
+      0x4c DWORD SizeOfStackCommit;
+      0x50 DWORD SizeOfHeapReserve;
+      0x54 DWORD SizeOfHeapCommit;
+      0x58 DWORD LoaderFlags;
+      0x5c DWORD NumberOfRvaAndSizes;
+      0x60 _IMAGE_DATA_DIRECTORY DataDirectory[16];
+    };
+};
+
+```
 .text:00010BBD                 movzx   eax, word ptr [esi+14h]
 
- struct PEOptHeader
- {
-/* 64 bit version of the PE Optional Header also known as IMAGE_OPTIONAL_HEADER64
-char is 1 byte
-short is 2 bytes
-long is 4 bytes
-long long is 8 bytes
-*/
-    short signature; //decimal number 267 for 32 bit, 523 for 64 bit, and 263 for a ROM image. 
-    char MajorLinkerVersion; 
-    char MinorLinkerVersion;
-    long SizeOfCode;
-    long SizeOfInitializedData;
-    long SizeOfUninitializedData;
-    long AddressOfEntryPoint;  //The RVA of the code entry point
-    long BaseOfCode;
-    /*The next 21 fields are an extension to the COFF optional header format*/
-    long long ImageBase;
-    long SectionAlignment;
-    long FileAlignment;
-    short MajorOSVersion;
-    short MinorOSVersion;
-    short MajorImageVersion;
-    short MinorImageVersion;
-    short MajorSubsystemVersion;
-    short MinorSubsystemVersion;
-    long Win32VersionValue;
-    long SizeOfImage;
-    long SizeOfHeaders;
-    long Checksum;
-    short Subsystem;
-    short DLLCharacteristics;
-    long long SizeOfStackReserve;
-    long long SizeOfStackCommit;
-    long long SizeOfHeapReserve;
-    long long SizeOfHeapCommit;
-    long LoaderFlags;
-    long NumberOfRvaAndSizes;
-    data_directory DataDirectory[NumberOfRvaAndSizes];     //Can have any number of elements, matching the number in NumberOfRvaAndSizes.
- }                                        //However, it is always 16 in PE files.
- 
- 
+[esi + 0x14] = FileHeader (0x4) + SizeOfOptionalHeader (0x10)
 
+WORD eax = SizeOfOptionalHeader
+
+```
+
+typedef struct _IMAGE_SECTION_HEADER {
+  0x00 BYTE Name[IMAGE_SIZEOF_SHORT_NAME];
+  union {
+  0x08 DWORD PhysicalAddress;
+  0x08 DWORD VirtualSize;
+  } Misc;
+  0x0c DWORD VirtualAddress;
+  0x10 DWORD SizeOfRawData;
+  0x14 DWORD PointerToRawData;
+  0x18 DWORD PointerToRelocations;
+  0x1c DWORD PointerToLinenumbers;
+  0x20 WORD NumberOfRelocations;
+  0x22 WORD NumberOfLinenumbers;
+  0x24 DWORD Characteristics;
+};
+
+```
 .text:00010BC1                 xor     ebx, ebx
 .text:00010BC3                 cmp     [esi+6], bx
 .text:00010BC7                 push    edi
 .text:00010BC8                 lea     edi, [eax+esi+18h]
 .text:00010BCC                 jbe     short loc_10BEB
+
+[esi + 0x6] = FileHeader (0x4) + NumberOfSections (0x2)
+
+(_IMAGE_SECTION_HEADER*)edi = eax(SizeOfOptionalHeader) + esi(_IMAGE_NT_HEADERS*) + (0x18)
+if(NumberOfSections == 0)
+{
+  goto loc_10BEB
+}
+
+```
+
+```
 .text:00010BCE
 .text:00010BCE loc_10BCE:                              ; CODE XREF: sub_10BB2+37j
 .text:00010BCE                 push    [esp+0Ch+arg_4] ; _DWORD
 .text:00010BD2                 push    edi             ; _DWORD
 .text:00010BD3                 call    ds:dword_169A4
+
+Get argument offsetted at ebp + arg_4.
+
+ret = dword_169A4((_IMAGE_SECTION_HEADER*) edi, *(ebp + arg_4))
+
 .text:00010BD9                 test    eax, eax
 .text:00010BDB                 pop     ecx
 .text:00010BDC                 pop     ecx
 .text:00010BDD                 jz      short loc_10BF3
+
+if(ret == 0)
+ goto end
+
+```
+
+```
 .text:00010BDF                 movzx   eax, word ptr [esi+6]
+
+eax = NumberOfSections
+
 .text:00010BE3                 add     edi, 28h
+
+(_IMAGE_SECTION_HEADER*)edi += 1
+
+We are at section header #2.
+
 .text:00010BE6                 inc     ebx
+
+ebx = 1
+
 .text:00010BE7                 cmp     ebx, eax
 .text:00010BE9                 jb      short loc_10BCE
+
+if(eax(NumberOfSections) < ebx(1))
+ goto loc_10BCE
+
 .text:00010BEB
 .text:00010BEB loc_10BEB:                              ; CODE XREF: sub_10BB2+1Aj
 .text:00010BEB                 xor     eax, eax
