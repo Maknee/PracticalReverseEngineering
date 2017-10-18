@@ -234,8 +234,9 @@ int SearchForSomethingInSectionsOfPeHeader(_IMAGE_DOS_HEADER* dos_header, int so
   {
     if(!*dword_169A4(section_header, some_value))
     {
-      return 0;
+      return ???;
     }
+    section_header += sizeof(_IMAGE_SECTION_HEADER);
   }
   return 0;
 }
