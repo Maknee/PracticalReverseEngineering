@@ -75,18 +75,25 @@ typedef struct unknown1
   ...
 }unknown1;
 
-typedef (*unk_func)(struct unknown1* unk1, struct unknown1* unk2)
+typedef (*unk_func)(struct unknown2* unk2, struct unknown1* unk1)
+
+struct unknown2_8
+{
+  ...
+  unk_func* unk38;
+  ...
+}
 
 typedef struct unknown2
 {
   ...
-  unk_func unk8
+  DWORD unk8;
   ...
 }unknown2;
 ```
 
 ```C
-void __fastcall sub_13842(struct unknown1* unk1, struct unknown1* unk2)
+void __fastcall sub_13842(struct unknown1* unk1, struct unknown2* unk2)
 {
   struct unknown1_60* = unk1->unk60;
   DWORD unk2_8 = unknown2->unk8;
@@ -95,7 +102,7 @@ void __fastcall sub_13842(struct unknown1* unk1, struct unknown1* unk2)
   unk1->unk60 = unkown1_60;
   unknown1_60->unk_14 = unk2;
   unknown1_60->unk0 &= 0xff;
-  (unk_func)((PCHAR)(unkown2->unk8 + unknown1_60->unk0) + 0x38)(unk1, unk2);
+  unkown2->unk8->unk38[unknown1_60->unk0](unk2, unk1);
 }
 ```
 
