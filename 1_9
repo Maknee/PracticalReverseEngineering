@@ -1,3 +1,5 @@
+9. Sample L. Explain what function sub_1000CEA0 does and then decompile it back to C.
+
 .text:1000CEA0 sub_1000CEA0    proc near               ; CODE XREF: sub_10007A4B+1D7p
 .text:1000CEA0                                         ; sub_1000AD4D+3Ap ...
 .text:1000CEA0
@@ -35,6 +37,89 @@
 .text:1000CECC sub_1000CEA0    endp
 .text:1000CECC
 .text:1000CECD
+
+```
+.text:1000CEA4                 mov     edi, [ebp+arg_0]
+.text:1000CEA7                 xor     eax, eax
+.text:1000CEA9                 or      ecx, 0FFFFFFFFh
+.text:1000CEAC                 repne scasb
+
+Search for NULL in edi.
+
+while(ecx > 0)
+{
+  if(*edi = 0)
+    break;
+  edi++;
+  ecx--;
+}
+
+```
+
+```
+ecx = -strlen - 2.
+
+.text:1000CEAE                 add     ecx, 1
+.text:1000CEB1                 neg     ecx
+.text:1000CEB3                 sub     edi, 1
+
+ecx = strlen + 1
+
+edi = NULL byte
+
+```
+
+```
+
+.text:1000CEB6                 mov     al, [ebp+arg_4]
+.text:1000CEB9                 std
+.text:1000CEBA                 repne scasb
+
+search backwords for char argument
+
+ecx = strlen + 1 - distance from end to found char
+
+edi = char pointer
+
+```
+
+```
+.text:1000CEBC                 add     edi, 1
+.text:1000CEBF                 cmp     [edi], al
+.text:1000CEC1                 jz      short loc_1000CEC7
+.text:1000CEC3                 xor     eax, eax
+.text:1000CEC5                 jmp     short loc_1000CEC9
+
+edi = pointing to char or not found
+
+if(found)
+{
+  loc_1000CEC7
+.text:1000CEC7 loc_1000CEC7:                           ; CODE XREF: sub_1000CEA0+21j
+.text:1000CEC7                 mov     eax, edi
+
+  return pointer where char was found
+}
+else
+{
+  return 0;
+}
+
+
+```C
+char* FindChar(char* string, char to_find)
+{
+  size_t len = strlen(string);
+  for(char* p = string + len; p > string; p--)
+  {
+     if(*p == to_find)
+      return p;
+  }
+  return NULL;
+}
+
+```
+
 
 
 
